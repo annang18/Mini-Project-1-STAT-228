@@ -1,0 +1,111 @@
+---
+title: "Does the Magic Hold Up? A Review Analysis of Harry Potter"
+author: "Anna Ng"
+output: html_document
+---
+
+```{r eval=TRUE, message=FALSE, results='hide'}
+library(tidyverse)
+library(ggthemes)
+```
+
+# Introduction
+
+Harry Potter is a series of seven fantasy novels written by British author J. K. Rowling. The novels chronicle the lives of a young wizard, Harry Potter, and his friends Hermione Granger and Ron Weasley, all of whom are students at Hogwarts School of Witchcraft and Wizardry. Since the release of the first novel, Harry Potter and the Philosopher's Stone, on 26 June 1997, the books have found immense popularity and commercial success worldwide. Despite the controversies of its author, the series keeps attracting the interest of thousands of readers in the world, selling more than 600 million copies worldwide as of 2023.
+
+I would be using the [Harry Potter Reviews Dataset](https://www.kaggle.com/datasets/marcpaulo/harry-potter-reviews) by Marc Paulo in Kaggle, which contains 491 synthetic reviews of the famous "Harry Potter and the Philosopher's Stone" movie. The reviews were generated using a LLM (Large Language Model). 
+
+There are 8 variables in the dataset:
+
+-   *user_id:* An id generated for each user who gave a review.
+-   *user_sex (later renamed to "user_gender"):* Female, male or other.
+-   *user_age:* The user's age.
+-   *user_country:* The user's country. It is important to notice they are all European countries.
+-   *rating:* Rating given by the user in a scale of 1 to 5.
+-   *comment:* A comment left by the user regarding the movie.
+-   *favourite_character:* The user's favorite character from the movie.
+-   *date:* The date data was collected. Between 2001 and 2005.
+
+Despite how the series touches very dark topics like death and murder, the fantasy and magic surrounding the Wizarding World suggar coats the story and gives the wrong impresion of it being a kids series. This analysis aims to check if younger people who identified themselves as females were more likely to leave a good review.
+
+##Review Dataset & Clean
+
+The dataset was cleaned before the analysis, which consisted of renaming the user_sex variable to user_gender. 
+
+```{r message=FALSE, warning=FALSE, include=FALSE, results='hide'}
+harry_potter_reviews <- read_csv("Data/harry_potter_reviews.csv")
+harry_potter_reviews_cleaned <- harry_potter_reviews |> 
+  rename(user_gender = user_sex)
+```
+
+```{r Dataset}
+harry_potter_reviews_cleaned
+```
+
+
+# Analysis
+
+## Graph 1
+
+```{r Graph1}
+#Violin Plot
+ggplot(harry_potter_reviews_cleaned, aes(x = user_gender, y = user_age, fill = user_gender)) +
+  geom_violin(trim = FALSE) +
+  scale_fill_manual(values = c("rosybrown", "azure3", "darkseagreen")
+  ) +
+   labs(
+    title = "Age Spread of the Reviewers",
+    caption = "Data source: Harry Potter Reviews by Marc Paulo in Kaggle",
+   x = "User's Gender",
+   y = "Age",
+   fill = "User's Gender"
+  )
+```
+
+Graph 1 uses a violin graph to describe the age distribution of all genders. The x-axis shows the user's gender and the y-axis the user's age. For all genders, the distribution of age seemed similar with most of the users having between 20 and 50 years old. The distribution for both females and males was similar, while the others group had a more different shape, meaning a different distribution pattern. It is important to notice the fewer number of young users, while there is a higher number for older users.
+
+## Graph 2
+
+```{r}
+female_rating <- harry_potter_reviews_cleaned |>
+  filter(user_gender == "female") |>
+  mutate(
+    age_group = case_when(
+      user_age < 20 ~ "Under 20",
+      user_age < 30 ~ "20-29",
+      user_age < 40 ~ "30-39",
+      user_age < 50 ~ "40-49",
+      user_age < 60 ~ "50-59",
+      TRUE ~ "60+"
+      )
+  )
+```
+
+
+```{r Graph2}
+#Boxplot
+ggplot(female_rating, aes(x = age_group, y = rating, fill = age_group)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("rosybrown", "skyblue4", "darkseagreen", "goldenrod1", "azure3", "indianred3")) +
+  labs(
+    title = "Do Younger Females Leave Higher Ratings?",
+    caption = "Data source: Harry Potter Reviews by Marc Paulo in Kaggle",
+    x = "User's Age Group",
+    y = "Rating",
+    fill = "Age Group"
+  )
+```
+
+
+Graph 2 uses a boxplot to display the relationship between female user's age in the x-axis and the rating in the y-axis. The dataset was further cleaned to only show female users' rating and their age group. 
+
+The females in between the 30-39 and 60+ age groups had the highest median rating. All groups show variability, with only the 30-39 and 60+ age groups having consistent ratings. The Under 20 and 50-59 groups showed more spread in the ratings. It is important to notice the presence of outliers in the 20-29 and 30-39 groups. Overall, younger females do leave good ratings but not consistently higher than older age groups. 
+Additionally, there is a high presence of points in the higher rating, so most of the users liked the movie.
+
+# Conclusion
+
+Ultimately, graph 2 shows how the highest rating seemed to come from the 60+ age group, this suggest that youth might correlate with higher ratings but it is not completely exclusive as older female could be even more generous with their ratings. 
+
+The data suggests that the Harry Potter series(or at least the first movie) can be appealing to different demographics, not only younger females.
+
+It is also important to note that stronger conclusions can be drawn with a more adequate testing, as the dataset used only had 491 entries exclusively from European countries. A large and more diverse sample with higher randomness could result in a more representative sample and, potentially, more generalizable results.
